@@ -2,8 +2,13 @@
 cie-verona
 *.exe
 
-# Go build cache
+# Go vendor directory
 /vendor/
+
+# Test binaries and coverage
+*.test
+coverage.out
+*.coverprofile
 
 # Environment secrets (never commit)
 .env
