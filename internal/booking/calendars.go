@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 )
 
 // CalendarGroup is a named set of calendar UUIDs to query together.
@@ -24,6 +25,16 @@ func LoadCalendarGroups(path string) ([]CalendarGroup, error) {
 	}
 	if len(groups) == 0 {
 		return nil, fmt.Errorf("%s contains no calendar groups", path)
+	}
+	for _, g := range groups {
+		if g.Name == "" {
+			return nil, fmt.Errorf("%s: group has empty name", path)
+		}
+		for _, uid := range g.Calendars {
+			if len(uid) != 36 || strings.Count(uid, "-") != 4 {
+				return nil, fmt.Errorf("%s: group %q has invalid UUID %q", path, g.Name, uid)
+			}
+		}
 	}
 	return groups, nil
 }
