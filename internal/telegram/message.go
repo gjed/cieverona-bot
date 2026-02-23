@@ -44,7 +44,7 @@ func BuildMessage(findings []booking.Finding, months []string, errs []string) st
 		sb.WriteString("\n")
 	}
 
-	sb.WriteString(fmt.Sprintf("<a href=%q>Prenota appuntamento</a>", bookingURL))
+	sb.WriteString(fmt.Sprintf("<a href=\"%s\">Prenota appuntamento</a>", bookingURL))
 
 	if len(errs) > 0 {
 		sb.WriteString("\n\n<b>Errori:</b>\n")
