@@ -1,0 +1,8 @@
+services:
+  cie-verona:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Override any .env value here if needed, e.g.:
+      POLL_INTERVAL: 15s
