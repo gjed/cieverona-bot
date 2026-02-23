@@ -6,20 +6,25 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-// Config holds the Telegram credentials needed to send a message.
+// Config holds the Telegram credentials needed to initialize a bot.
 type Config struct {
 	Token  string
 	ChatID int64
 }
 
-// Send sends text (HTML-formatted) to the configured Telegram chat.
-func Send(cfg Config, text string) error {
-	bot, err := tgbotapi.NewBotAPI(cfg.Token)
+// NewBot creates and validates a Telegram bot from the given token.
+// Call this once at startup.
+func NewBot(token string) (*tgbotapi.BotAPI, error) {
+	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
-		return fmt.Errorf("init bot: %w", err)
+		return nil, fmt.Errorf("init bot: %w", err)
 	}
+	return bot, nil
+}
 
-	msg := tgbotapi.NewMessage(cfg.ChatID, text)
+// Send sends text (HTML-formatted) to the configured Telegram chat.
+func Send(bot *tgbotapi.BotAPI, chatID int64, text string) error {
+	msg := tgbotapi.NewMessage(chatID, text)
 	msg.ParseMode = tgbotapi.ModeHTML
 	msg.DisableWebPagePreview = true
 

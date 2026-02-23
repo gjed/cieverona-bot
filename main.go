@@ -7,6 +7,8 @@ import (
 	"syscall"
 	"time"
 
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+
 	"github.com/gjed/cie-verona/internal/booking"
 	"github.com/gjed/cie-verona/internal/config"
 	"github.com/gjed/cie-verona/internal/telegram"
@@ -25,8 +27,13 @@ func main() {
 		log.Fatalf("ERROR: loading calendar groups: %v", err)
 	}
 
+	bot, err := telegram.NewBot(cfg.TelegramToken)
+	if err != nil {
+		log.Fatalf("ERROR: init Telegram bot: %v", err)
+	}
+
 	log.Printf("Starting daemon, polling every %s", cfg.PollInterval)
-	run(cfg, groups) // run immediately on startup
+	run(cfg, groups, bot) // run immediately on startup
 
 	ticker := time.NewTicker(cfg.PollInterval)
 	defer ticker.Stop()
@@ -37,7 +44,7 @@ func main() {
 	for {
 		select {
 		case <-ticker.C:
-			run(cfg, groups)
+			run(cfg, groups, bot)
 		case sig := <-quit:
 			log.Printf("Received %s, shutting down.", sig)
 			return
@@ -45,7 +52,7 @@ func main() {
 	}
 }
 
-func run(cfg config.Config, groups []booking.CalendarGroup) {
+func run(cfg config.Config, groups []booking.CalendarGroup, bot *tgbotapi.BotAPI) {
 	now := time.Now()
 	months := booking.Months(now)
 	findings, errs := booking.Check(now, groups)
@@ -61,8 +68,7 @@ func run(cfg config.Config, groups []booking.CalendarGroup) {
 	log.Printf("Sending Telegram notification (%d finding(s)).", len(findings))
 
 	msg := telegram.BuildMessage(findings, months, errs)
-	tgCfg := telegram.Config{Token: cfg.TelegramToken, ChatID: cfg.TelegramChatID}
-	if err := telegram.Send(tgCfg, msg); err != nil {
+	if err := telegram.Send(bot, cfg.TelegramChatID, msg); err != nil {
 		log.Printf("ERROR: failed to send Telegram message: %v", err)
 		return
 	}
