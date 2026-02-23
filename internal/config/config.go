@@ -61,11 +61,14 @@ func LoadDotEnv(path string) {
 				val = val[1 : len(val)-1]
 			}
 		}
-		if os.Getenv(key) == "" {
+		if _, ok := os.LookupEnv(key); !ok {
 			if err := os.Setenv(key, val); err != nil {
 				log.Printf("WARN: os.Setenv(%q): %v", key, err)
 			}
 		}
+	}
+	if err := scanner.Err(); err != nil {
+		log.Printf("WARN: reading %s: %v", path, err)
 	}
 }
 
