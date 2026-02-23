@@ -6,12 +6,6 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-// Config holds the Telegram credentials needed to initialize a bot.
-type Config struct {
-	Token  string
-	ChatID int64
-}
-
 // NewBot creates and validates a Telegram bot from the given token.
 // Call this once at startup.
 func NewBot(token string) (*tgbotapi.BotAPI, error) {
