@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Sportello Polifunzionale Adigetto",
+    "calendars": [
+      "3c76ca92-c4a7-4568-84aa-cbf8d409b019",
+      "1d86bb6d-a4cb-41da-bbf8-606df733072e",
+      "f618e6c1-3595-4833-ad09-8622bae666b7",
+      "bb2ad109-4127-447d-a1cd-4313a683efae",
+      "5cd6646a-e173-4cad-9022-4d23cbd4a4e6",
+      "f07d6009-d464-4b78-93e3-816436648dca",
+      "c1226a53-e1bb-46d6-98fd-38cc6d08d865",
+      "b4c51c8b-5957-4413-a817-a7d78b593ac4",
+      "a4564a1d-d917-430a-99e0-5cba11491ef7",
+      "e5907a73-4e58-4a7c-b343-dad3faea6692",
+      "d984c932-7a3f-4e79-92c5-361858dde0e0",
+      "ef73bcf9-755b-439e-a5a0-e824d54260b2"
+    ]
+  },
+  {
+    "name": "3a Circoscrizione – Borgo Milano",
+    "calendars": [
+      "55c5baf5-690d-4451-b819-61d40aa58b16",
+      "e7a1f60a-f446-415a-9651-1158d802608e"
+    ]
+  },
+  {
+    "name": "7a Circoscrizione – San Michele",
+    "calendars": [
+      "71948d3d-e996-4d6b-8061-fbca6829a078",
+      "289a3c98-492f-4181-97b0-984dc8c97d13"
+    ]
+  },
+  {
+    "name": "4a Circoscrizione – Golosine",
+    "calendars": [
+      "797c76e7-2db3-40ed-9d14-62b92f09b859",
+      "5e03e169-7b68-4dc6-9bc6-5080201e008c"
+    ]
+  },
+  {
+    "name": "5a Circoscrizione – S. Croce / Quinzano",
+    "calendars": [
+      "95fc8a6f-dd83-4c9d-853a-acac36ab7b09",
+      "39278cc0-3ba9-48d7-aa2b-769b2d34c783"
+    ]
+  }
+]
