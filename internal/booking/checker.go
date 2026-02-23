@@ -44,8 +44,7 @@ type slot struct {
 
 // Check queries all groups for the next numMonths months and returns findings
 // and any non-fatal errors encountered.
-func Check(groups []CalendarGroup) (findings []Finding, errs []string) {
-	now := time.Now()
+func Check(now time.Time, groups []CalendarGroup) (findings []Finding, errs []string) {
 	var months []string
 	for i := 0; i < numMonths; i++ {
 		months = append(months, now.AddDate(0, i, 0).Format("2006-01"))
@@ -87,8 +86,7 @@ func Check(groups []CalendarGroup) (findings []Finding, errs []string) {
 }
 
 // Months returns the list of YYYY-MM strings for the next numMonths months.
-func Months() []string {
-	now := time.Now()
+func Months(now time.Time) []string {
 	months := make([]string, numMonths)
 	for i := range months {
 		months[i] = now.AddDate(0, i, 0).Format("2006-01")
@@ -127,6 +125,9 @@ func fetchAvailabilities(group CalendarGroup, month string) ([]Finding, error) {
 
 	var findings []Finding
 	for _, avail := range ar.Availabilities {
+		if len(avail.Slots) == 0 {
+			continue
+		}
 		info := fetchCalendarInfo(avail.CalendarID)
 		findings = append(findings, Finding{
 			GroupName:    group.Name,
