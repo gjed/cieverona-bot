@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 )
 
 const baseCalendar = "https://www.comune.verona.it/openpa/data/booking/calendar"
@@ -23,6 +24,7 @@ type calendarInfo struct {
 var (
 	calCache   = map[string]calendarInfo{}
 	calCacheMu sync.Mutex
+	httpClient = &http.Client{Timeout: 10 * time.Second}
 )
 
 func fetchCalendarInfo(id string) calendarInfo {
@@ -33,7 +35,7 @@ func fetchCalendarInfo(id string) calendarInfo {
 	}
 	calCacheMu.Unlock()
 
-	resp, err := http.Get(fmt.Sprintf("%s/%s", baseCalendar, id))
+	resp, err := httpClient.Get(fmt.Sprintf("%s/%s", baseCalendar, id))
 	if err != nil {
 		return calendarInfo{ID: id, Title: id}
 	}
@@ -43,7 +45,16 @@ func fetchCalendarInfo(id string) calendarInfo {
 		}
 	}()
 
-	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("WARN: calendar API returned %d for %s", resp.StatusCode, id)
+		return calendarInfo{ID: id, Title: id}
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("WARN: reading calendar response for %s: %v", id, err)
+		return calendarInfo{ID: id, Title: id}
+	}
 	var info calendarInfo
 	if err := json.Unmarshal(body, &info); err != nil {
 		info = calendarInfo{ID: id, Title: id}
@@ -61,5 +72,5 @@ var htmlTagRe = regexp.MustCompile(`<[^>]*>`)
 func stripHTMLTags(s string) string {
 	s = htmlTagRe.ReplaceAllString(s, " ")
 	s = html.UnescapeString(s)
-	return strings.Join(strings.Fields(s), ", ")
+	return strings.Join(strings.Fields(s), " ")
 }
