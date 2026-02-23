@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
+	"regexp"
 )
+
+var uuidRe = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
 
 // CalendarGroup is a named set of calendar UUIDs to query together.
 type CalendarGroup struct {
@@ -30,8 +32,11 @@ func LoadCalendarGroups(path string) ([]CalendarGroup, error) {
 		if g.Name == "" {
 			return nil, fmt.Errorf("%s: group has empty name", path)
 		}
+		if len(g.Calendars) == 0 {
+			return nil, fmt.Errorf("%s: group %q has no calendars", path, g.Name)
+		}
 		for _, uid := range g.Calendars {
-			if len(uid) != 36 || strings.Count(uid, "-") != 4 {
+			if !uuidRe.MatchString(uid) {
 				return nil, fmt.Errorf("%s: group %q has invalid UUID %q", path, g.Name, uid)
 			}
 		}

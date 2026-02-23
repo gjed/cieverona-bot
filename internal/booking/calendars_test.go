@@ -76,6 +76,33 @@ func TestLoadCalendarGroups_InvalidUUID(t *testing.T) {
 	}
 }
 
+func TestLoadCalendarGroups_WrongFormatUUID(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "wronguuid.json")
+	// 36 chars, 4 hyphens, but contains non-hex characters
+	content := `[{"name":"Test Group","calendars":["gggggggg-gggg-gggg-gggg-gggggggggggg"]}]`
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	_, err := LoadCalendarGroups(path)
+	if err == nil {
+		t.Fatal("expected error for wrong-format UUID, got nil")
+	}
+}
+
+func TestLoadCalendarGroups_EmptyCalendars(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "emptycals.json")
+	content := `[{"name":"Test Group","calendars":[]}]`
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	_, err := LoadCalendarGroups(path)
+	if err == nil {
+		t.Fatal("expected error for group with no calendars, got nil")
+	}
+}
+
 func TestLoadCalendarGroups_Valid(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "valid.json")
