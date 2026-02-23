@@ -1,0 +1,19 @@
+# Binaries
+cie-verona
+*.exe
+
+# Go build cache
+/vendor/
+
+# Environment secrets (never commit)
+.env
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
