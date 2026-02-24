@@ -4,27 +4,26 @@ import (
 	"bufio"
 	"log"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
 
 // Config holds all runtime configuration loaded from the environment.
 type Config struct {
-	TelegramToken  string
-	TelegramChatID int64
-	PollInterval   time.Duration
-	CalendarsFile  string // path to calendars.json; defaults to "calendars.json"
+	TelegramToken string
+	DBPath        string // path to SQLite DB; defaults to "data/subscribers.db"
+	PollInterval  time.Duration
+	CalendarsFile string // path to calendars.json; defaults to "calendars.json"
 }
 
 // Load reads environment variables (after LoadDotEnv) and returns a Config.
 // It calls log.Fatalf on any missing required value.
 func Load() Config {
 	return Config{
-		TelegramToken:  mustEnv("TELEGRAM_TOKEN"),
-		TelegramChatID: mustEnvInt64("TELEGRAM_CHAT_ID"),
-		PollInterval:   mustEnvDuration("POLL_INTERVAL", 15*time.Minute),
-		CalendarsFile:  getEnv("CALENDARS_FILE", "calendars.json"),
+		TelegramToken: mustEnv("TELEGRAM_TOKEN"),
+		DBPath:        getEnv("DB_PATH", "data/subscribers.db"),
+		PollInterval:  mustEnvDuration("POLL_INTERVAL", 15*time.Minute),
+		CalendarsFile: getEnv("CALENDARS_FILE", "calendars.json"),
 	}
 }
 
@@ -97,13 +96,4 @@ func mustEnvDuration(key string, def time.Duration) time.Duration {
 		log.Fatalf("environment variable %q is not a valid duration (e.g. 15m, 1h): %v", key, err)
 	}
 	return d
-}
-
-func mustEnvInt64(key string) int64 {
-	v := mustEnv(key)
-	n, err := strconv.ParseInt(v, 10, 64)
-	if err != nil {
-		log.Fatalf("environment variable %q must be an integer: %v", key, err)
-	}
-	return n
 }
