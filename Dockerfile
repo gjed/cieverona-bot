@@ -12,5 +12,7 @@ FROM scratch
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /cie-verona /cie-verona
+COPY calendars.json /calendars.json
 
+WORKDIR /
 ENTRYPOINT ["/cie-verona"]
