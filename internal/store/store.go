@@ -41,13 +41,19 @@ func (s *Store) Subscribe(chatID int64) error {
 	_, err := s.db.Exec(
 		`INSERT OR IGNORE INTO subscribers (chat_id) VALUES (?)`, chatID,
 	)
-	return err
+	if err != nil {
+		return fmt.Errorf("subscribe %d: %w", chatID, err)
+	}
+	return nil
 }
 
 // Unsubscribe removes chatID from subscribers. No-op if not present.
 func (s *Store) Unsubscribe(chatID int64) error {
 	_, err := s.db.Exec(`DELETE FROM subscribers WHERE chat_id = ?`, chatID)
-	return err
+	if err != nil {
+		return fmt.Errorf("unsubscribe %d: %w", chatID, err)
+	}
+	return nil
 }
 
 // ListSubscribers returns all subscribed chat IDs.
@@ -58,7 +64,7 @@ func (s *Store) ListSubscribers() ([]int64, error) {
 	}
 	defer rows.Close()
 
-	var ids []int64
+	ids := make([]int64, 0)
 	for rows.Next() {
 		var id int64
 		if err := rows.Scan(&id); err != nil {
@@ -70,6 +76,9 @@ func (s *Store) ListSubscribers() ([]int64, error) {
 }
 
 func migrate(db *sql.DB) error {
+	if _, err := db.Exec(`PRAGMA journal_mode=WAL`); err != nil {
+		return fmt.Errorf("set WAL mode: %w", err)
+	}
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS subscribers (
 			chat_id       INTEGER PRIMARY KEY,
