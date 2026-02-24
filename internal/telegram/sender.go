@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"fmt"
+	"log"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -26,4 +27,14 @@ func Send(bot *tgbotapi.BotAPI, chatID int64, text string) error {
 		return fmt.Errorf("send message: %w", err)
 	}
 	return nil
+}
+
+// SendAll sends text to every subscriber chat ID.
+// Errors for individual recipients are logged but do not abort the loop.
+func SendAll(bot *tgbotapi.BotAPI, chatIDs []int64, text string) {
+	for _, id := range chatIDs {
+		if err := Send(bot, id, text); err != nil {
+			log.Printf("WARN: send to %d failed: %v", id, err)
+		}
+	}
 }
