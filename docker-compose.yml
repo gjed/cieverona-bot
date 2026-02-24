@@ -9,8 +9,9 @@ services:
       - cie-data:/data
 
   sendtest:
-    build: .
-    entrypoint: ["/sendtest"]
+    build:
+      context: .
+      dockerfile: cmd/sendtest/Dockerfile
     env_file: .env
     volumes:
       - cie-data:/data
