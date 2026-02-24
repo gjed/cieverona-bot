@@ -8,5 +8,14 @@ services:
     volumes:
       - cie-data:/data
 
+  sendtest:
+    build: .
+    entrypoint: ["/sendtest"]
+    env_file: .env
+    volumes:
+      - cie-data:/data
+    profiles:
+      - tools
+
 volumes:
   cie-data:
