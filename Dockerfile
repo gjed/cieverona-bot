@@ -15,4 +15,5 @@ COPY --from=builder /cie-verona /cie-verona
 COPY calendars.json /calendars.json
 
 WORKDIR /
+VOLUME ["/data"]
 ENTRYPOINT ["/cie-verona"]
