@@ -3,8 +3,9 @@
 Polls the Comune di Verona booking API for available CIE (Carta d'Identità Elettronica)
 appointment slots across **all five office groups** for the **current month and the next two**.
 
-If any slot is open, a single Telegram message is sent with a summary and a direct link to
-the booking page.
+If any slot is open, a Telegram message is sent to all subscribers with a summary and a
+direct link to the booking page. Users subscribe with `/subscribe` and unsubscribe with
+`/unsubscribe` directly in the bot chat.
 
 ## Build
 
@@ -23,11 +24,11 @@ $EDITOR .env
 ./cie-verona
 ```
 
-| Variable             | Required | Default | Description                                        |
-|----------------------|----------|---------|----------------------------------------------------|
-| `TELEGRAM_TOKEN`     | yes      | –       | Bot token from @BotFather                          |
-| `TELEGRAM_CHAT_ID`   | yes      | –       | Numeric ID of the chat to notify                   |
-| `POLL_INTERVAL`      | no       | `15m`   | How often to check. Go duration syntax: `15m`, `1h`, `30s` |
+| Variable         | Required | Default                  | Description                                        |
+|------------------|----------|--------------------------|----------------------------------------------------|
+| `TELEGRAM_TOKEN` | yes      | –                        | Bot token from @BotFather                          |
+| `POLL_INTERVAL`  | no       | `15m`                    | How often to check. Go duration syntax: `15m`, `1h`, `30s` |
+| `DB_PATH`        | no       | `data/subscribers.db`    | Path to SQLite subscriber database                 |
 
 ## Telegram setup
 
@@ -37,28 +38,11 @@ $EDITOR .env
 2. Send `/newbot`, follow the prompts.
 3. Copy the token (format: `123456789:AAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`) → `TELEGRAM_TOKEN`.
 
-### 2. Find your chat ID
+### 2. Subscribe to notifications
 
-Start a conversation with your bot (send it any message), then run:
-
-```sh
-curl -s "https://api.telegram.org/bot$TELEGRAM_TOKEN/getUpdates" \
-  | python3 -m json.tool \
-  | grep '"id"' | head -1
-```
-
-The first `"id"` value under `message.chat` is your `TELEGRAM_CHAT_ID`.
-
-Alternatively, forward any message from your bot to [@userinfobot](https://t.me/userinfobot)
-and it will reply with your numeric ID.
-
-### 3. Groups / channels
-
-To send to a **group**: add the bot to the group, then call `getUpdates` after any group
-message — look for `"chat": { "id": -100xxxxxxxxxx }` (negative number for groups).
-
-To send to a **channel**: add the bot as an admin, use the channel's numeric ID or
-`@channelname` as `TELEGRAM_CHAT_ID`.
+Start a chat with your bot and send `/subscribe`. The bot stores your chat ID in SQLite and
+will notify you whenever a slot opens. Send `/unsubscribe` to stop. Any other command shows
+the help message.
 
 ## Docker
 
