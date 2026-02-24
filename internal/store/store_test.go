@@ -64,6 +64,10 @@ func openTestStore(t *testing.T) *store.Store {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	t.Cleanup(func() { s.Close() })
+	t.Cleanup(func() {
+		if err := s.Close(); err != nil {
+			t.Errorf("store Close: %v", err)
+		}
+	})
 	return s
 }

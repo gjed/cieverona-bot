@@ -3,6 +3,7 @@ package store
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -62,7 +63,11 @@ func (s *Store) ListSubscribers() ([]int64, error) {
 	if err != nil {
 		return nil, fmt.Errorf("query subscribers: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			log.Printf("ERROR: closing query rows: %v", closeErr)
+		}
+	}()
 
 	ids := make([]int64, 0)
 	for rows.Next() {

@@ -10,7 +10,9 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
 	"github.com/gjed/cie-verona/internal/booking"
+	"github.com/gjed/cie-verona/internal/bot"
 	"github.com/gjed/cie-verona/internal/config"
+	"github.com/gjed/cie-verona/internal/store"
 	"github.com/gjed/cie-verona/internal/telegram"
 )
 
@@ -18,7 +20,6 @@ func main() {
 	config.LoadDotEnv(".env")
 	cfg := config.Load()
 
-	// Write to stdout without date prefix — Docker adds its own timestamps.
 	log.SetOutput(os.Stdout)
 	log.SetFlags(0)
 
@@ -27,13 +28,25 @@ func main() {
 		log.Fatalf("ERROR: loading calendar groups: %v", err)
 	}
 
-	bot, err := telegram.NewBot(cfg.TelegramToken)
+	db, err := store.Open(cfg.DBPath)
+	if err != nil {
+		log.Fatalf("ERROR: opening subscriber store: %v", err)
+	}
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("ERROR: closing subscriber store: %v", err)
+		}
+	}()
+
+	tgBot, err := telegram.NewBot(cfg.TelegramToken)
 	if err != nil {
 		log.Fatalf("ERROR: init Telegram bot: %v", err)
 	}
 
+	bot.StartListener(tgBot, db)
+
 	log.Printf("Starting daemon, polling every %s", cfg.PollInterval)
-	run(cfg, groups, bot) // run immediately on startup
+	run(cfg, groups, tgBot, db)
 
 	ticker := time.NewTicker(cfg.PollInterval)
 	defer ticker.Stop()
@@ -44,7 +57,7 @@ func main() {
 	for {
 		select {
 		case <-ticker.C:
-			run(cfg, groups, bot)
+			run(cfg, groups, tgBot, db)
 		case sig := <-quit:
 			log.Printf("Received %s, shutting down.", sig)
 			return
@@ -52,7 +65,7 @@ func main() {
 	}
 }
 
-func run(cfg config.Config, groups []booking.CalendarGroup, bot *tgbotapi.BotAPI) {
+func run(cfg config.Config, groups []booking.CalendarGroup, tgBot *tgbotapi.BotAPI, db *store.Store) {
 	now := time.Now()
 	months := booking.Months(now)
 	findings, errs := booking.Check(now, groups)
@@ -65,12 +78,19 @@ func run(cfg config.Config, groups []booking.CalendarGroup, bot *tgbotapi.BotAPI
 	for _, f := range findings {
 		log.Printf("FOUND: %s — %s — %s (%d slot(s))", f.Date, f.GroupName, f.CalendarName, f.SlotCount)
 	}
-	log.Printf("Sending Telegram notification (%d finding(s)).", len(findings))
 
-	msg := telegram.BuildMessage(findings, months, errs)
-	if err := telegram.Send(bot, cfg.TelegramChatID, msg); err != nil {
-		log.Printf("ERROR: failed to send Telegram message: %v", err)
+	subscribers, err := db.ListSubscribers()
+	if err != nil {
+		log.Printf("ERROR: listing subscribers: %v", err)
 		return
 	}
-	log.Println("Telegram message sent successfully.")
+	if len(subscribers) == 0 {
+		log.Println("No subscribers — skipping Telegram notification.")
+		return
+	}
+
+	log.Printf("Sending Telegram notification to %d subscriber(s) (%d finding(s)).", len(subscribers), len(findings))
+	msg := telegram.BuildMessage(findings, months, errs)
+	telegram.SendAll(tgBot, subscribers, msg)
+	log.Println("Telegram notifications sent.")
 }
