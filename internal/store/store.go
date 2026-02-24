@@ -57,6 +57,16 @@ func (s *Store) Unsubscribe(chatID int64) error {
 	return nil
 }
 
+// IsSubscribed reports whether chatID is currently subscribed.
+func (s *Store) IsSubscribed(chatID int64) (bool, error) {
+	var count int
+	err := s.db.QueryRow(`SELECT COUNT(*) FROM subscribers WHERE chat_id = ?`, chatID).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("is subscribed %d: %w", chatID, err)
+	}
+	return count > 0, nil
+}
+
 // ListSubscribers returns all subscribed chat IDs.
 func (s *Store) ListSubscribers() ([]int64, error) {
 	rows, err := s.db.Query(`SELECT chat_id FROM subscribers`)

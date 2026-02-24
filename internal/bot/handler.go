@@ -8,9 +8,11 @@ import (
 )
 
 const (
-	msgSubscribed   = "✅ Iscritto! Riceverai notifiche sugli appuntamenti disponibili."
-	msgUnsubscribed = "❌ Disiscritto."
-	msgHelp         = "Comandi disponibili:\n/subscribe – ricevi notifiche\n/unsubscribe – smetti di ricevere notifiche"
+	msgSubscribed     = "✅ Iscritto! Riceverai notifiche sugli appuntamenti disponibili."
+	msgUnsubscribed   = "❌ Disiscritto."
+	msgStatusActive   = "✅ Sei iscritto alle notifiche."
+	msgStatusInactive = "🔕 Non sei iscritto. Usa /subscribe per ricevere notifiche."
+	msgHelp           = "Comandi disponibili:\n/subscribe – ricevi notifiche\n/unsubscribe – smetti di ricevere notifiche\n/status – controlla se sei iscritto"
 )
 
 // StartListener starts a goroutine that long-polls for Telegram updates
@@ -52,6 +54,16 @@ func handleCommand(bot *tgbotapi.BotAPI, s *store.Store, msg *tgbotapi.Message) 
 		} else {
 			log.Printf("INFO: %d unsubscribed", chatID)
 			text = msgUnsubscribed
+		}
+	case "status":
+		ok, err := s.IsSubscribed(chatID)
+		if err != nil {
+			log.Printf("ERROR: status %d: %v", chatID, err)
+			text = "Errore interno. Riprova più tardi."
+		} else if ok {
+			text = msgStatusActive
+		} else {
+			text = msgStatusInactive
 		}
 	default:
 		text = msgHelp

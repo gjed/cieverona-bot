@@ -57,6 +57,38 @@ func TestUnsubscribeNotSubscribed(t *testing.T) {
 	}
 }
 
+func TestIsSubscribed(t *testing.T) {
+	s := openTestStore(t)
+
+	ok, err := s.IsSubscribed(111)
+	if err != nil {
+		t.Fatalf("IsSubscribed: %v", err)
+	}
+	if ok {
+		t.Fatal("expected not subscribed before Subscribe")
+	}
+
+	_ = s.Subscribe(111)
+
+	ok, err = s.IsSubscribed(111)
+	if err != nil {
+		t.Fatalf("IsSubscribed after Subscribe: %v", err)
+	}
+	if !ok {
+		t.Fatal("expected subscribed after Subscribe")
+	}
+
+	_ = s.Unsubscribe(111)
+
+	ok, err = s.IsSubscribed(111)
+	if err != nil {
+		t.Fatalf("IsSubscribed after Unsubscribe: %v", err)
+	}
+	if ok {
+		t.Fatal("expected not subscribed after Unsubscribe")
+	}
+}
+
 func openTestStore(t *testing.T) *store.Store {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "test.db")
