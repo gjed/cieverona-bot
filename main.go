@@ -60,6 +60,7 @@ func main() {
 			run(cfg, groups, tgBot, db)
 		case sig := <-quit:
 			log.Printf("Received %s, shutting down.", sig)
+			tgBot.StopReceivingUpdates()
 			return
 		}
 	}
