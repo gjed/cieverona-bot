@@ -7,7 +7,6 @@ import (
 	"time"
 
 	charmlog "github.com/charmbracelet/log"
-	"github.com/charmbracelet/x/term"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/muesli/termenv"
 
@@ -27,9 +26,7 @@ func main() {
 		TimeFormat:      time.DateTime,
 		ReportTimestamp: true,
 	})
-	if !term.IsTerminal(os.Stdout.Fd()) {
-		logger.SetColorProfile(termenv.Ascii)
-	}
+	logger.SetColorProfile(termenv.TrueColor)
 	charmlog.SetDefault(logger)
 
 	groups, err := booking.LoadCalendarGroups(cfg.CalendarsFile)
