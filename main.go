@@ -74,8 +74,8 @@ func main() {
 
 func run(cfg config.Config, groups []booking.CalendarGroup, tgBot *tgbotapi.BotAPI, db *store.Store) {
 	now := time.Now()
-	months := booking.Months(now)
-	findings, errs := booking.Check(now, groups)
+	months := booking.Months(now, cfg.CheckMonths)
+	findings, errs := booking.Check(now, groups, cfg.CheckMonths)
 
 	if len(findings) == 0 {
 		charmlog.Info("no available slots found")

@@ -12,10 +12,7 @@ import (
 	charmlog "github.com/charmbracelet/log"
 )
 
-const (
-	baseAvail = "https://www.comune.verona.it/openpa/data/booking/availabilities"
-	numMonths = 6
-)
+const baseAvail = "https://www.comune.verona.it/openpa/data/booking/availabilities"
 
 // Finding is a single available slot group found for a calendar on a date.
 type Finding struct {
@@ -45,7 +42,7 @@ type slot struct {
 
 // Check queries all groups for the next numMonths months and returns findings
 // and any non-fatal errors encountered.
-func Check(now time.Time, groups []CalendarGroup) (findings []Finding, errs []string) {
+func Check(now time.Time, groups []CalendarGroup, numMonths int) (findings []Finding, errs []string) {
 	var months []string
 	for i := 0; i < numMonths; i++ {
 		months = append(months, now.AddDate(0, i, 0).Format("2006-01"))
@@ -86,9 +83,9 @@ func Check(now time.Time, groups []CalendarGroup) (findings []Finding, errs []st
 	return findings, errs
 }
 
-// Months returns the list of YYYY-MM strings for the next numMonths months.
-func Months(now time.Time) []string {
-	months := make([]string, numMonths)
+// Months returns the list of YYYY-MM strings for the next n months.
+func Months(now time.Time, n int) []string {
+	months := make([]string, n)
 	for i := range months {
 		months[i] = now.AddDate(0, i, 0).Format("2006-01")
 	}

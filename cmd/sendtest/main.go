@@ -51,7 +51,7 @@ func main() {
 			SlotCount:    3,
 		},
 	}
-	months := booking.Months(time.Now())
+	months := booking.Months(time.Now(), cfg.CheckMonths)
 	msg := telegram.BuildMessage(findings, months, nil)
 	telegram.SendAll(bot, subscribers, msg)
 	charmlog.Info("sent", "subscribers", len(subscribers))

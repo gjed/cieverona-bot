@@ -5,6 +5,7 @@ services:
     env_file: .env
     environment:
       POLL_INTERVAL: 1m
+      CHECK_MONTHS: 6
     volumes:
       - cie-data:/data
 

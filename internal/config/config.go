@@ -3,6 +3,7 @@ package config
 import (
 	"bufio"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ type Config struct {
 	DBPath        string // path to SQLite DB; defaults to "data/subscribers.db"
 	PollInterval  time.Duration
 	CalendarsFile string // path to calendars.json; defaults to "calendars.json"
+	CheckMonths   int    // number of months to check ahead; defaults to 6
 }
 
 // Load reads environment variables (after LoadDotEnv) and returns a Config.
@@ -25,6 +27,7 @@ func Load() Config {
 		DBPath:        getEnv("DB_PATH", "data/subscribers.db"),
 		PollInterval:  mustEnvDuration("POLL_INTERVAL", 15*time.Minute),
 		CalendarsFile: getEnv("CALENDARS_FILE", "calendars.json"),
+		CheckMonths:   mustEnvInt("CHECK_MONTHS", 3),
 	}
 }
 
@@ -85,6 +88,18 @@ func mustEnv(key string) string {
 		charmlog.Fatal("required env var not set", "key", key)
 	}
 	return v
+}
+
+func mustEnvInt(key string, def int) int {
+	v := os.Getenv(key)
+	if v == "" {
+		return def
+	}
+	n, err := strconv.Atoi(v)
+	if err != nil || n <= 0 {
+		charmlog.Fatal("invalid integer env var", "key", key, "value", v)
+	}
+	return n
 }
 
 func mustEnvDuration(key string, def time.Duration) time.Duration {
