@@ -7,9 +7,9 @@
 package main
 
 import (
-	"log"
 	"time"
 
+	charmlog "github.com/charmbracelet/log"
 	"github.com/gjed/cie-verona/internal/booking"
 	"github.com/gjed/cie-verona/internal/config"
 	"github.com/gjed/cie-verona/internal/store"
@@ -22,25 +22,25 @@ func main() {
 
 	db, err := store.Open(cfg.DBPath)
 	if err != nil {
-		log.Fatalf("open store: %v", err)
+		charmlog.Fatal("open store", "err", err)
 	}
 	defer func() {
 		if err := db.Close(); err != nil {
-			log.Printf("close store: %v", err)
+			charmlog.Error("close store", "err", err)
 		}
 	}()
 
 	bot, err := telegram.NewBot(cfg.TelegramToken)
 	if err != nil {
-		log.Fatalf("init bot: %v", err)
+		charmlog.Fatal("init bot", "err", err)
 	}
 
 	subscribers, err := db.ListSubscribers()
 	if err != nil {
-		log.Fatalf("list subscribers: %v", err)
+		charmlog.Fatal("list subscribers", "err", err)
 	}
 	if len(subscribers) == 0 {
-		log.Fatal("No subscribers. Send /subscribe to the bot first.")
+		charmlog.Fatal("no subscribers, send /subscribe to the bot first")
 	}
 
 	findings := []booking.Finding{
@@ -54,5 +54,5 @@ func main() {
 	months := booking.Months(time.Now())
 	msg := telegram.BuildMessage(findings, months, nil)
 	telegram.SendAll(bot, subscribers, msg)
-	log.Printf("Sent to %d subscriber(s).", len(subscribers))
+	charmlog.Info("sent", "subscribers", len(subscribers))
 }

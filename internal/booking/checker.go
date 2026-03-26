@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
+
+	charmlog "github.com/charmbracelet/log"
 )
 
 const (
@@ -50,7 +51,7 @@ func Check(now time.Time, groups []CalendarGroup) (findings []Finding, errs []st
 		months = append(months, now.AddDate(0, i, 0).Format("2006-01"))
 	}
 
-	log.Printf("Checking %d groups for months: %s", len(groups), strings.Join(months, ", "))
+	charmlog.Info("checking availability", "groups", len(groups), "months", strings.Join(months, ", "))
 
 	type result struct {
 		findings []Finding
@@ -77,7 +78,7 @@ func Check(now time.Time, groups []CalendarGroup) (findings []Finding, errs []st
 	for r := range ch {
 		if r.err != nil {
 			errs = append(errs, r.err.Error())
-			log.Printf("ERROR: %v", r.err)
+			charmlog.Error("availability check failed", "err", r.err)
 			continue
 		}
 		findings = append(findings, r.findings...)
@@ -105,7 +106,7 @@ func fetchAvailabilities(group CalendarGroup, month string) ([]Finding, error) {
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
-			log.Printf("WARN: closing availability response body: %v", err)
+			charmlog.Warn("closing availability response body", "err", err)
 		}
 	}()
 

@@ -2,8 +2,8 @@ package telegram
 
 import (
 	"fmt"
-	"log"
 
+	charmlog "github.com/charmbracelet/log"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -34,7 +34,7 @@ func Send(bot *tgbotapi.BotAPI, chatID int64, text string) error {
 func SendAll(bot *tgbotapi.BotAPI, chatIDs []int64, text string) {
 	for _, id := range chatIDs {
 		if err := Send(bot, id, text); err != nil {
-			log.Printf("WARN: send to %d failed: %v", id, err)
+			charmlog.Warn("send failed", "chat_id", id, "err", err)
 		}
 	}
 }

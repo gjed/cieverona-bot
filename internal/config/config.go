@@ -2,10 +2,11 @@ package config
 
 import (
 	"bufio"
-	"log"
 	"os"
 	"strings"
 	"time"
+
+	charmlog "github.com/charmbracelet/log"
 )
 
 // Config holds all runtime configuration loaded from the environment.
@@ -38,7 +39,7 @@ func LoadDotEnv(path string) {
 	}
 	defer func() {
 		if err := f.Close(); err != nil {
-			log.Printf("WARN: closing %s: %v", path, err)
+			charmlog.Warn("closing file", "path", path, "err", err)
 		}
 	}()
 
@@ -62,12 +63,12 @@ func LoadDotEnv(path string) {
 		}
 		if _, ok := os.LookupEnv(key); !ok {
 			if err := os.Setenv(key, val); err != nil {
-				log.Printf("WARN: os.Setenv(%q): %v", key, err)
+				charmlog.Warn("setenv failed", "key", key, "err", err)
 			}
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		log.Printf("WARN: reading %s: %v", path, err)
+		charmlog.Warn("reading file", "path", path, "err", err)
 	}
 }
 
@@ -81,7 +82,7 @@ func getEnv(key, def string) string {
 func mustEnv(key string) string {
 	v := os.Getenv(key)
 	if v == "" {
-		log.Fatalf("required environment variable %q is not set", key)
+		charmlog.Fatal("required env var not set", "key", key)
 	}
 	return v
 }
@@ -93,7 +94,7 @@ func mustEnvDuration(key string, def time.Duration) time.Duration {
 	}
 	d, err := time.ParseDuration(v)
 	if err != nil {
-		log.Fatalf("environment variable %q is not a valid duration (e.g. 15m, 1h): %v", key, err)
+		charmlog.Fatal("invalid duration env var", "key", key, "err", err)
 	}
 	return d
 }

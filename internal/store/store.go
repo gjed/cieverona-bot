@@ -3,10 +3,10 @@ package store
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
+	charmlog "github.com/charmbracelet/log"
 	_ "modernc.org/sqlite"
 )
 
@@ -75,7 +75,7 @@ func (s *Store) ListSubscribers() ([]int64, error) {
 	}
 	defer func() {
 		if closeErr := rows.Close(); closeErr != nil {
-			log.Printf("ERROR: closing query rows: %v", closeErr)
+			charmlog.Error("closing query rows", "err", closeErr)
 		}
 	}()
 

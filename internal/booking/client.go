@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"html"
 	"io"
-	"log"
 	"net/http"
 	"regexp"
 	"strings"
 	"sync"
 	"time"
+
+	charmlog "github.com/charmbracelet/log"
 )
 
 const baseCalendar = "https://www.comune.verona.it/openpa/data/booking/calendar"
@@ -41,18 +42,18 @@ func fetchCalendarInfo(id string) calendarInfo {
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
-			log.Printf("WARN: closing calendar response body: %v", err)
+			charmlog.Warn("closing calendar response body", "err", err)
 		}
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("WARN: calendar API returned %d for %s", resp.StatusCode, id)
+		charmlog.Warn("calendar API error", "status", resp.StatusCode, "id", id)
 		return calendarInfo{ID: id, Title: id}
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("WARN: reading calendar response for %s: %v", id, err)
+		charmlog.Warn("reading calendar response", "id", id, "err", err)
 		return calendarInfo{ID: id, Title: id}
 	}
 	var info calendarInfo

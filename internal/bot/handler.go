@@ -1,8 +1,7 @@
 package bot
 
 import (
-	"log"
-
+	charmlog "github.com/charmbracelet/log"
 	"github.com/gjed/cie-verona/internal/store"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -41,24 +40,24 @@ func handleCommand(bot *tgbotapi.BotAPI, s *store.Store, msg *tgbotapi.Message) 
 	switch msg.Command() {
 	case "subscribe":
 		if err := s.Subscribe(chatID); err != nil {
-			log.Printf("ERROR: subscribe %d: %v", chatID, err)
+			charmlog.Error("subscribe failed", "chat_id", chatID, "err", err)
 			text = "Errore interno. Riprova più tardi."
 		} else {
-			log.Printf("INFO: %d subscribed", chatID)
+			charmlog.Info("subscribed", "chat_id", chatID)
 			text = msgSubscribed
 		}
 	case "unsubscribe":
 		if err := s.Unsubscribe(chatID); err != nil {
-			log.Printf("ERROR: unsubscribe %d: %v", chatID, err)
+			charmlog.Error("unsubscribe failed", "chat_id", chatID, "err", err)
 			text = "Errore interno. Riprova più tardi."
 		} else {
-			log.Printf("INFO: %d unsubscribed", chatID)
+			charmlog.Info("unsubscribed", "chat_id", chatID)
 			text = msgUnsubscribed
 		}
 	case "status":
 		ok, err := s.IsSubscribed(chatID)
 		if err != nil {
-			log.Printf("ERROR: status %d: %v", chatID, err)
+			charmlog.Error("status check failed", "chat_id", chatID, "err", err)
 			text = "Errore interno. Riprova più tardi."
 		} else if ok {
 			text = msgStatusActive
@@ -71,6 +70,6 @@ func handleCommand(bot *tgbotapi.BotAPI, s *store.Store, msg *tgbotapi.Message) 
 
 	reply := tgbotapi.NewMessage(chatID, text)
 	if _, err := bot.Send(reply); err != nil {
-		log.Printf("WARN: reply to %d failed: %v", chatID, err)
+		charmlog.Warn("reply failed", "chat_id", chatID, "err", err)
 	}
 }

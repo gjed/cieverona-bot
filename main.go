@@ -1,13 +1,15 @@
 package main
 
 import (
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	charmlog "github.com/charmbracelet/log"
+	"github.com/charmbracelet/x/term"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/muesli/termenv"
 
 	"github.com/gjed/cie-verona/internal/booking"
 	"github.com/gjed/cie-verona/internal/bot"
@@ -20,32 +22,39 @@ func main() {
 	config.LoadDotEnv(".env")
 	cfg := config.Load()
 
-	log.SetOutput(os.Stdout)
-	log.SetFlags(log.Ldate | log.Ltime)
+	logger := charmlog.NewWithOptions(os.Stdout, charmlog.Options{
+		Level:           charmlog.DebugLevel,
+		TimeFormat:      time.DateTime,
+		ReportTimestamp: true,
+	})
+	if !term.IsTerminal(os.Stdout.Fd()) {
+		logger.SetColorProfile(termenv.Ascii)
+	}
+	charmlog.SetDefault(logger)
 
 	groups, err := booking.LoadCalendarGroups(cfg.CalendarsFile)
 	if err != nil {
-		log.Fatalf("ERROR: loading calendar groups: %v", err)
+		charmlog.Fatal("loading calendar groups", "err", err)
 	}
 
 	db, err := store.Open(cfg.DBPath)
 	if err != nil {
-		log.Fatalf("ERROR: opening subscriber store: %v", err)
+		charmlog.Fatal("opening subscriber store", "err", err)
 	}
 	defer func() {
 		if err := db.Close(); err != nil {
-			log.Printf("ERROR: closing subscriber store: %v", err)
+			charmlog.Error("closing subscriber store", "err", err)
 		}
 	}()
 
 	tgBot, err := telegram.NewBot(cfg.TelegramToken)
 	if err != nil {
-		log.Fatalf("ERROR: init Telegram bot: %v", err)
+		charmlog.Fatal("init Telegram bot", "err", err)
 	}
 
 	bot.StartListener(tgBot, db)
 
-	log.Printf("Starting daemon, polling every %s", cfg.PollInterval)
+	charmlog.Info("starting daemon", "poll_interval", cfg.PollInterval)
 	run(cfg, groups, tgBot, db)
 
 	ticker := time.NewTicker(cfg.PollInterval)
@@ -59,7 +68,7 @@ func main() {
 		case <-ticker.C:
 			run(cfg, groups, tgBot, db)
 		case sig := <-quit:
-			log.Printf("Received %s, shutting down.", sig)
+			charmlog.Info("shutting down", "signal", sig)
 			tgBot.StopReceivingUpdates()
 			return
 		}
@@ -72,26 +81,26 @@ func run(cfg config.Config, groups []booking.CalendarGroup, tgBot *tgbotapi.BotA
 	findings, errs := booking.Check(now, groups)
 
 	if len(findings) == 0 {
-		log.Println("No available slots found.")
+		charmlog.Info("no available slots found")
 		return
 	}
 
 	for _, f := range findings {
-		log.Printf("FOUND: %s — %s — %s (%d slot(s))", f.Date, f.GroupName, f.CalendarName, f.SlotCount)
+		charmlog.Info("found slot", "date", f.Date, "group", f.GroupName, "calendar", f.CalendarName, "slots", f.SlotCount)
 	}
 
 	subscribers, err := db.ListSubscribers()
 	if err != nil {
-		log.Printf("ERROR: listing subscribers: %v", err)
+		charmlog.Error("listing subscribers", "err", err)
 		return
 	}
 	if len(subscribers) == 0 {
-		log.Println("No subscribers — skipping Telegram notification.")
+		charmlog.Info("no subscribers, skipping notification")
 		return
 	}
 
-	log.Printf("Sending Telegram notification to %d subscriber(s) (%d finding(s)).", len(subscribers), len(findings))
+	charmlog.Info("sending notifications", "subscribers", len(subscribers), "findings", len(findings))
 	msg := telegram.BuildMessage(findings, months, errs)
 	telegram.SendAll(tgBot, subscribers, msg)
-	log.Println("Telegram notifications sent.")
+	charmlog.Info("notifications sent")
 }
