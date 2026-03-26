@@ -14,7 +14,7 @@ import (
 
 const (
 	baseAvail = "https://www.comune.verona.it/openpa/data/booking/availabilities"
-	numMonths = 3
+	numMonths = 6
 )
 
 // Finding is a single available slot group found for a calendar on a date.
