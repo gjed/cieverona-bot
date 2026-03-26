@@ -21,7 +21,7 @@ func main() {
 	cfg := config.Load()
 
 	log.SetOutput(os.Stdout)
-	log.SetFlags(0)
+	log.SetFlags(log.Ldate | log.Ltime)
 
 	groups, err := booking.LoadCalendarGroups(cfg.CalendarsFile)
 	if err != nil {

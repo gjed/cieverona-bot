@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      POLL_INTERVAL: 15s
+      POLL_INTERVAL: 1m
     volumes:
       - cie-data:/data
 
