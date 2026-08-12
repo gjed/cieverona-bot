@@ -3,7 +3,7 @@ module github.com/gjed/cie-verona
 go 1.25.1
 
 require (
-	github.com/charmbracelet/log v1.0.0
+	github.com/charmbracelet/log/v2 v2.0.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/muesli/termenv v0.16.0
 	modernc.org/sqlite v1.56.0
